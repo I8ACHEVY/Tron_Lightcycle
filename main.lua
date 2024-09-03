@@ -8,6 +8,11 @@ local aiChangeInterval = 1
 local aiTimer = 0
 local fixedLineWidth = 5
 
+--local gameState = require "screens/menu"
+
+-- local Game = require "screens/game"
+
+
 -- Rotation angles for directions (in radians)
 local directionAngles = {
     up = -math.pi / 2,  -- 90 degrees counterclockwise
@@ -18,6 +23,7 @@ local directionAngles = {
 
 function love.load()
     love.window.setMode(1300, 1000)
+
     love.graphics.setBackgroundColor(0, 0, 0)
 
     cycle1.image = love.graphics.newImage('assets/images/Tron1.png')
@@ -25,11 +31,13 @@ function love.load()
 end
 
 function love.update(dt)
+    --if gameState == 'game' then
     moveCycle(cycle1, dt)
     moveCycle(cycle2, dt)
-
     if checkCollision(cycle1) or checkCollision(cycle2) then
+        --gameState = 'menu'
         love.event.quit()
+        --end
     end
 
     -- AI logic
@@ -43,18 +51,36 @@ function love.update(dt)
 end
 
 function love.draw()
+    --if gameState == 'menu' then
+    --    drawMenu()
+    --elseif gameState == 'game' then
     drawTrail(cycle1)
     drawTrail(cycle2)
 
     drawCycle(cycle1)
     drawCycle(cycle2)
+    --end
 end
 
 function love.keypressed(key)
+    -- if gameState == 'menu' then
+    --     if key == 'return' then
+    --         gameState = 'playing'
+    --     elseif key == 'i' then
+    --         gameState = 'instructions'
+    --     elseif key == 'q' then
+    --         love.event.quit()
+    --     end
+    -- elseif gameState == 'instructions' then
+    --     if key == 'return' then
+    --         gameState = 'menu'
+    --     end
+    --elseif gameState == 'playing' then
     if key == 'w' or key == 'up' then cycle1.dir = 'up' end
     if key == 's' or key == 'down' then cycle1.dir = 'down' end
     if key == 'a' or key == 'left' then cycle1.dir = 'left' end
     if key == 'd' or key == 'right' then cycle1.dir = 'right' end
+    --end
 end
 
 function moveCycle(cycle, dt)
