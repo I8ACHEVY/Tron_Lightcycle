@@ -255,7 +255,7 @@ end
 -- function calculateFreeSpace(x, y)
 --     local space = 0
 --     local directions = { 'up', 'down', 'left', 'right' }
---
+
 --     for _, direction in ipairs(directions) do
 --         local nextX, nextY = x, y
 --         if direction == 'up' then
