@@ -258,38 +258,17 @@ function calculateFreeSpace(x, y)
     local space = 0
     local directions = { 'up', 'down', 'left', 'right' }
 
-    --     for _, direction in ipairs(directions) do
-    --         local nextX, nextY = x, y
-    --         if direction == 'up' then
-    --             nextY = nextY - gridSize
-    --         elseif direction == 'down' then
-    --             nextY = nextY + gridSize
-    --         elseif direction == 'left' then
-    --             nextX = nextX - gridSize
-    --         elseif direction == 'right' then
-    --             nextX = nextX + gridSize
-    --         end
-
-    --         if not isCollision(nextX, nextY) then
-    --             space = space + 1
-    --         end
-    --     end
-    --     return space
-    -- end
-
     if x < 0 or x >= love.graphics.getWidth() or
         y < 0 or y >= love.graphics.getHeight() then
         return true
     end
 
-    -- Check collision with cycle1's trail
     for _, point in ipairs(cycle1.trail) do
         if x == point.x and y == point.y then
             return true
         end
     end
 
-    -- Check collision with cycle2's trail
     for _, point in ipairs(cycle2.trail) do
         if x == point.x and y == point.y then
             return true
