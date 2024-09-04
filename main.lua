@@ -163,6 +163,8 @@ function checkCollision(cycle)
     end
 
     -- Check collision with boundaries
+    local imageWidth = cycle.image:getWidth() * cycle.scale
+    local imageHeight = cycle.image:getHeight() * cycle.scale
     if cycle.x < 0 or cycle.x + imageWidth > love.graphics.getWidth() or
         cycle.y < 0 or cycle.y + imageHeight > love.graphics.getHeight() then
         return true
