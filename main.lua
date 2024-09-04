@@ -1,7 +1,8 @@
 require 'debug'
+epsilon = 1.1920928955078125e-07
 
-local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 0, 1 }, scale = 0.3 }
-local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, color = { 1, 0, 0 }, ai = true, scale = 0.3 }
+local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 0, 1 }, scale = 0.4 }
+local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, color = { 1, 0, 0 }, ai = true, scale = 0.4 }
 local gridSize = 40
 local cycleSpeed = 200
 local aiChangeInterval = 1
@@ -83,7 +84,7 @@ function love.keypressed(key)
 end
 
 function moveCycle(cycle, dt)
-    table.insert(cycle.trail, { x = cycle.x, y = cycle.y })
+    table.insert(cycle.trail, { x = cycle.x, y = cycle.y }) -- Edit Trail location
 
     if cycle.dir == 'up' then cycle.y = cycle.y - cycleSpeed * dt end
     if cycle.dir == 'down' then cycle.y = cycle.y + cycleSpeed * dt end
@@ -124,30 +125,53 @@ function drawTrail(cycle)
         local p2 = cycle.trail[i + 1]
         love.graphics.line(p1.x, p1.y, p2.x, p2.y)
     end
-
+    -- adjust to player location
     local latest = cycle.trail[#cycle.trail]
-    love.graphics.circle('fill', latest.x, latest.y, fixedLineWidth / 2)
+    local scaleX = cycle.scale
+    local scaleY = cycle.scale
+    local imageWidth = cycle.image:getWidth() * scaleX
+    local imageHeight = cycle.image:getHeight() * scaleY
+    love.graphics.circle('fill', latest.x, latest.y + imageHeight / 2, fixedLineWidth)
 end
 
 function checkCollision(cycle)
     local imageWidth = cycle.image:getWidth() * cycle.scale
     local imageHeight = cycle.image:getHeight() * cycle.scale
 
+    -- for _, point in ipairs(cycle.trail) do
+    --     if cycle.x + epsilion >= point.x or cycle.x <= point.x - epsilion and
+    --         cycle.y + epsilion >= point.y or cycle.y <= point.x - epsilion then
+    --         return true
+    --     end
+    -- end
+
+    -- local otherCycle = (cycle == cycle1) and cycle2 or cycle1
+    -- for _, point in ipairs(otherCycle.trail) do
+    --     if cycle.x == point.x and cycle.y == point.y then
+    --         return true
+    --     end
+    -- end
+
+    -- Check collision with the trail
     for _, point in ipairs(cycle.trail) do
-        if cycle.x == point.x and cycle.y == point.y then
+        if math.abs(cycle.x - point.x) < epsilon and
+            math.abs(cycle.y - point.y) < epsilon then
             return true
         end
     end
 
+    -- Check collision with the other cycle's trail
     local otherCycle = (cycle == cycle1) and cycle2 or cycle1
     for _, point in ipairs(otherCycle.trail) do
-        if cycle.x == point.x and cycle.y == point.y then
+        if math.abs(cycle.x - point.x) < epsilon and
+            math.abs(cycle.y - point.y) < epsilon then
             return true
         end
     end
 
 
-    if cycle.x < 0 or cycle.x + imageWidth > love.graphics.getWidth() or cycle.y < 0 or cycle.y + imageHeight > love.graphics.getHeight() then
+    if cycle.x < 0 or cycle.x + imageWidth > love.graphics.getWidth() or
+        cycle.y < 0 or cycle.y + imageHeight > love.graphics.getHeight() then
         return true
     end
 
@@ -166,13 +190,19 @@ function changeAIDirection(cycle)
             table.remove(possibleDirections, i)
         end
     end
+    -- math.randomseed(os.time())
+    -- local newDir = possibleDirections[math.random(#possibleDirections)] -- can not do math.radomseed causes crash
 
-    local newDir = possibleDirections[math.random(#possibleDirections)]
 
+    -- while isDirectionBlocked(cycle, newDir) do
+    --     newDir = possibleDirections[math.random(#possibleDirections)]
+    -- end
 
-    while isDirectionBlocked(cycle, newDir) do
+    -- cycle.dir = newDir
+
+    repeat
         newDir = possibleDirections[math.random(#possibleDirections)]
-    end
+    until not isDirectionBlocked(cycle, newDir)
 
     cycle.dir = newDir
 end
@@ -202,7 +232,8 @@ function isDirectionBlocked(cycle, direction)
         nextX = nextX + gridSize
     end
 
-    if nextX < 0 or nextX >= love.graphics.getWidth() or nextY < 0 or nextY >= love.graphics.getHeight() then
+    if nextX < 0 or nextX >= love.graphics.getWidth() or
+        nextY < 0 or nextY >= love.graphics.getHeight() then
         return true
     end
 
