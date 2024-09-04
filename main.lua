@@ -12,7 +12,6 @@ local fixedLineWidth = 5
 
 -- local Game = require "screens/game"
 
-
 -- Rotation angles for directions (in radians)
 local directionAngles = {
     up = -math.pi / 2,  -- 90 degrees counterclockwise
@@ -155,7 +154,7 @@ function checkCollision(cycle)
     return false
 end
 
--- change the AI's direction
+-- change AI's direction
 function changeAIDirection(cycle)
     local possibleDirections = { 'up', 'down', 'left', 'right' }
     local bestDirection = nil
