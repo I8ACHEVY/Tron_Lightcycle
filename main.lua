@@ -84,12 +84,17 @@ function love.keypressed(key)
 end
 
 function moveCycle(cycle, dt)
-    table.insert(cycle.trail, { x = cycle.x, y = cycle.y }) -- Edit Trail location
+    local prevX, prevY = cycle.x, cycle.y
+    table.insert(cycle.trail, { x = prevX, y = prevY }) -- Edit Trail location, orig = { x = cycle.x, y = cycle.y })
 
     if cycle.dir == 'up' then cycle.y = cycle.y - cycleSpeed * dt end
     if cycle.dir == 'down' then cycle.y = cycle.y + cycleSpeed * dt end
     if cycle.dir == 'left' then cycle.x = cycle.x - cycleSpeed * dt end
     if cycle.dir == 'right' then cycle.x = cycle.x + cycleSpeed * dt end
+
+    if checkCollision(cycle) then
+        cycle.x, cycle.y = prevX, prevY
+    end
 end
 
 -- draw a cycle with rotation
@@ -117,9 +122,16 @@ function drawTrail(cycle)
     local latest = cycle.trail[#cycle.trail]
     local scaleX = cycle.scale
     local scaleY = cycle.scale
-    local imageWidth = cycle.image:getWidth() * scaleX
-    local imageHeight = cycle.image:getHeight() * scaleY
-    love.graphics.circle('fill', latest.x, latest.y + imageHeight / 2, fixedLineWidth)
+    local imageWidth = cycle.image:getWidth() * cycle.scale                                --scaleX
+    local imageHeight = cycle.image:getHeight() * cycle.scale                              --scaleY
+    love.graphics.circle('fill', latest.x, latest.y + imageHeight / 2, fixedLineWidth / 2) --fixedLineWidth now has /2
+end
+
+function debugCycleTrail(cycle)
+    print("Trail length: ", #cycle.trail)
+    for i, point in ipairs(cycle.trail) do
+        print("Point ", i, ": ", point.x, point.y)
+    end
 end
 
 function pointToSegmentDistance(px, py, x1, y1, x2, y2)
@@ -140,14 +152,14 @@ function checkCollision(cycle)
     local collisionDistance = fixedLineWidth / 2 -- Adjust this to match the trail's visual width
 
     -- Check collision with the trail
-    for i = 1, #cycle.trail - 1 do
-        local p1 = cycle.trail[i]
-        local p2 = cycle.trail[i + 1]
-        local distance = pointToSegmentDistance(cycle.x, cycle.y, p1.x, p1.y, p2.x, p2.y)
-        if distance < collisionDistance then
-            return true
-        end
-    end
+    -- for i = 1, #cycle.trail - 1 do
+    --     local p1 = cycle.trail[i]
+    --     local p2 = cycle.trail[i + 1]
+    --     local distance = pointToSegmentDistance(cycle.x, cycle.y, p1.x, p1.y, p2.x, p2.y)
+    --     if distance < collisionDistance then
+    --         return true
+    --     end
+    -- end
 
     -- Check collision with the other cycle's trail
     local otherCycle = (cycle == cycle1) and cycle2 or cycle1
@@ -194,7 +206,7 @@ function changeAIDirection(cycle)
     -- cycle.dir = newDir
 
     repeat
-        newDir = possibleDirections[math.random(#possibleDirections)]
+        newDir = possibleDirections[math.randomseed(#possibleDirections)]
     until not isDirectionBlocked(cycle, newDir)
 
     cycle.dir = newDir
