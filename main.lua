@@ -123,17 +123,15 @@ function drawTrail(cycle)
 end
 
 function pointToSegmentDistance(px, py, x1, y1, x2, y2)
-    function pointToSegmentDistance(px, py, x1, y1, x2, y2)
-        local lineLengthSquared = (x2 - x1) ^ 2 + (y2 - y1) ^ 2
-        if lineLengthSquared == 0 then
-            return math.sqrt((px - x1) ^ 2 + (py - y1) ^ 2)
-        end
-        local t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / lineLengthSquared
-        t = math.max(0, math.min(1, t))
-        local projectionX = x1 + t * (x2 - x1)
-        local projectionY = y1 + t * (y2 - y1)
-        return math.sqrt((px - projectionX) ^ 2 + (py - projectionY) ^ 2)
+    local lineLengthSquared = (x2 - x1) ^ 2 + (y2 - y1) ^ 2
+    if lineLengthSquared == 0 then
+        return math.sqrt((px - x1) ^ 2 + (py - y1) ^ 2)
     end
+    local t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / lineLengthSquared
+    t = math.max(0, math.min(1, t))
+    local projectionX = x1 + t * (x2 - x1)
+    local projectionY = y1 + t * (y2 - y1)
+    return math.sqrt((px - projectionX) ^ 2 + (py - projectionY) ^ 2)
 end
 
 function checkCollision(cycle)
