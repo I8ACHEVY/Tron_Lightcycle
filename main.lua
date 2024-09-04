@@ -105,18 +105,6 @@ function drawCycle(cycle)
 end
 
 function drawTrail(cycle)
-    --     local scaleX = cycle.scale
-    --     local scaleY = cycle.scale
-    --     for _, point in ipairs(cycle.trail) do
-    --         local angle = directionAngles[cycle.dir]
-    --         local imageWidth = cycle.image:getWidth() * scaleX
-    --         local imageHeight = cycle.image:getHeight() * scaleY
-    --         local drawX = point.x + imageWidth / 2
-    --         local drawY = point.y + imageHeight / 2
-    --         love.graphics.draw(cycle.image, drawX, drawY, angle, scaleX, scaleY, imageWidth / 2, imageHeight / 2)
-    --     end
-    -- end
-
     love.graphics.setLineWidth('2')
     love.graphics.setColor(cycle.color)
 
@@ -134,42 +122,47 @@ function drawTrail(cycle)
     love.graphics.circle('fill', latest.x, latest.y + imageHeight / 2, fixedLineWidth)
 end
 
+function pointToSegmentDistance(px, py, x1, y1, x2, y2)
+    function pointToSegmentDistance(px, py, x1, y1, x2, y2)
+        local lineLengthSquared = (x2 - x1) ^ 2 + (y2 - y1) ^ 2
+        if lineLengthSquared == 0 then
+            return math.sqrt((px - x1) ^ 2 + (py - y1) ^ 2)
+        end
+        local t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / lineLengthSquared
+        t = math.max(0, math.min(1, t))
+        local projectionX = x1 + t * (x2 - x1)
+        local projectionY = y1 + t * (y2 - y1)
+        return math.sqrt((px - projectionX) ^ 2 + (py - projectionY) ^ 2)
+    end
+end
+
 function checkCollision(cycle)
     local imageWidth = cycle.image:getWidth() * cycle.scale
     local imageHeight = cycle.image:getHeight() * cycle.scale
-
-    -- for _, point in ipairs(cycle.trail) do
-    --     if cycle.x + epsilion >= point.x or cycle.x <= point.x - epsilion and
-    --         cycle.y + epsilion >= point.y or cycle.y <= point.x - epsilion then
-    --         return true
-    --     end
-    -- end
-
-    -- local otherCycle = (cycle == cycle1) and cycle2 or cycle1
-    -- for _, point in ipairs(otherCycle.trail) do
-    --     if cycle.x == point.x and cycle.y == point.y then
-    --         return true
-    --     end
-    -- end
+    local collisionDistance = fixedLineWidth / 2 -- Adjust this to match the trail's visual width
 
     -- Check collision with the trail
-    for _, point in ipairs(cycle.trail) do
-        if math.abs(cycle.x - point.x) < epsilon and
-            math.abs(cycle.y - point.y) < epsilon then
+    for i = 1, #cycle.trail - 1 do
+        local p1 = cycle.trail[i]
+        local p2 = cycle.trail[i + 1]
+        local distance = pointToSegmentDistance(cycle.x, cycle.y, p1.x, p1.y, p2.x, p2.y)
+        if distance < collisionDistance then
             return true
         end
     end
 
     -- Check collision with the other cycle's trail
     local otherCycle = (cycle == cycle1) and cycle2 or cycle1
-    for _, point in ipairs(otherCycle.trail) do
-        if math.abs(cycle.x - point.x) < epsilon and
-            math.abs(cycle.y - point.y) < epsilon then
+    for i = 1, #otherCycle.trail - 1 do
+        local p1 = otherCycle.trail[i]
+        local p2 = otherCycle.trail[i + 1]
+        local distance = pointToSegmentDistance(cycle.x, cycle.y, p1.x, p1.y, p2.x, p2.y)
+        if distance < collisionDistance then
             return true
         end
     end
 
-
+    -- Check collision with boundaries
     if cycle.x < 0 or cycle.x + imageWidth > love.graphics.getWidth() or
         cycle.y < 0 or cycle.y + imageHeight > love.graphics.getHeight() then
         return true
@@ -273,16 +266,4 @@ end
 --         end
 --     end
 --     return space
--- end
-
--- function getOppositeDirection(direction)
---     if direction == 'up' then
---         return 'down'
---     elseif direction == 'down' then
---         return 'up'
---     elseif direction == 'left' then
---         return 'right'
---     elseif direction == 'right' then
---         return 'left'
---     end
 -- end
