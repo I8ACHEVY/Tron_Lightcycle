@@ -172,9 +172,6 @@ function checkCollision(cycle)
         end
     end
 
-    -- Check collision with boundaries
-    local imageWidth = cycle.image:getWidth() * cycle.scale
-    local imageHeight = cycle.image:getHeight() * cycle.scale
     if cycle.x < 0 or cycle.x + imageWidth > love.graphics.getWidth() or
         cycle.y < 0 or cycle.y + imageHeight > love.graphics.getHeight() then
         return true
@@ -206,7 +203,7 @@ function changeAIDirection(cycle)
     -- cycle.dir = newDir
 
     repeat
-        newDir = possibleDirections[math.randomseed(#possibleDirections)]
+        newDir = possibleDirections[math.random(#possibleDirections)]
     until not isDirectionBlocked(cycle, newDir)
 
     cycle.dir = newDir
@@ -257,25 +254,47 @@ function isDirectionBlocked(cycle, direction)
     return false
 end
 
--- function calculateFreeSpace(x, y)
---     local space = 0
---     local directions = { 'up', 'down', 'left', 'right' }
+function calculateFreeSpace(x, y)
+    local space = 0
+    local directions = { 'up', 'down', 'left', 'right' }
 
---     for _, direction in ipairs(directions) do
---         local nextX, nextY = x, y
---         if direction == 'up' then
---             nextY = nextY - gridSize
---         elseif direction == 'down' then
---             nextY = nextY + gridSize
---         elseif direction == 'left' then
---             nextX = nextX - gridSize
---         elseif direction == 'right' then
---             nextX = nextX + gridSize
---         end
+    --     for _, direction in ipairs(directions) do
+    --         local nextX, nextY = x, y
+    --         if direction == 'up' then
+    --             nextY = nextY - gridSize
+    --         elseif direction == 'down' then
+    --             nextY = nextY + gridSize
+    --         elseif direction == 'left' then
+    --             nextX = nextX - gridSize
+    --         elseif direction == 'right' then
+    --             nextX = nextX + gridSize
+    --         end
 
---         if not isCollision(nextX, nextY) then
---             space = space + 1
---         end
---     end
---     return space
--- end
+    --         if not isCollision(nextX, nextY) then
+    --             space = space + 1
+    --         end
+    --     end
+    --     return space
+    -- end
+
+    if x < 0 or x >= love.graphics.getWidth() or
+        y < 0 or y >= love.graphics.getHeight() then
+        return true
+    end
+
+    -- Check collision with cycle1's trail
+    for _, point in ipairs(cycle1.trail) do
+        if x == point.x and y == point.y then
+            return true
+        end
+    end
+
+    -- Check collision with cycle2's trail
+    for _, point in ipairs(cycle2.trail) do
+        if x == point.x and y == point.y then
+            return true
+        end
+    end
+
+    return false
+end
