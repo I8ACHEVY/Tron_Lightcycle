@@ -105,7 +105,7 @@ function drawCycle(cycle)
 end
 
 function drawTrail(cycle)
-    love.graphics.setLineWidth('2')
+    love.graphics.setLineWidth(fixedLineWidth)
     love.graphics.setColor(cycle.color)
 
     for i = 1, #cycle.trail - 1 do
