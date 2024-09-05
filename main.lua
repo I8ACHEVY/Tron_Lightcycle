@@ -1,9 +1,9 @@
 require 'debug'
 epsilon = 1.1920928955078125e-07
 
-local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = 1 }            -- , color = { 0, 50, 255 }
-local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 1 } --color = { 255, 50, 0 }
-local gridSize = 40
+local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = 1 }
+local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 1 }
+local gridSize = 100
 local cycleSpeed = 200
 local aiChangeInterval = 1
 local aiTimer = 0
@@ -30,8 +30,8 @@ function love.load()
 
     love.graphics.setBackgroundColor(0, 0, 0)
 
-    cycle1.image = love.graphics.newImage('assets/images/Tron1.png')
-    cycle2.image = love.graphics.newImage('assets/images/Tron2.png')
+    cycle1.image = love.graphics.newImage('assets/images/Tron_50.png')
+    cycle2.image = love.graphics.newImage('assets/images/Tron2_50.png')
 
     wallImage = love.graphics.newImage('assets/images/wall.png')
     wallWidth = wallImage:getWidth()
