@@ -104,6 +104,11 @@ function moveCycle(cycle, dt)
     if cycle.dir == 'left' then cycle.x = cycle.x - cycleSpeed * dt end
     if cycle.dir == 'right' then cycle.x = cycle.x + cycleSpeed * dt end
 
+    local buffer = 10
+    local trailX = prevX + (buffer * math.cos(directionAngles[cycle.dir]))
+    local trailY = prevY + (buffer * math.sin(directionAngles[cycle.dir]))
+    table.insert(cycle.trail, { x = trailX, y = trailY })
+
     if checkCollision(cycle) then
         cycle.x, cycle.y = prevX, prevY
     end
@@ -170,7 +175,7 @@ end
 function checkCollision(cycle)
     local imageWidth = cycle.image:getWidth() * cycle.scale
     local imageHeight = cycle.image:getHeight() * cycle.scale
-    local collisionDistance = fixedLineWidth + imageWidth -- Adjust this to match the trail's visual width
+    local collisionDistance = fixedLineWidth -- Adjust this to match the trail's visual width
 
     -- Check collision with the trail
     for i = 1, #cycle.trail - 1 do
