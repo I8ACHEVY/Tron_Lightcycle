@@ -9,6 +9,10 @@ local aiChangeInterval = 1
 local aiTimer = 0
 local fixedLineWidth = 5
 
+local wallImage = nil
+local wallWidth = 10
+local wallHeight = 10
+
 --local gameState = require "screens/menu"
 
 -- local Game = require "screens/game"
@@ -28,6 +32,10 @@ function love.load()
 
     cycle1.image = love.graphics.newImage('assets/images/Tron1.png')
     cycle2.image = love.graphics.newImage('assets/images/Tron2.png')
+
+    wallImage = love.graphics.newImage('assets/images/wall.png')
+    wallWidth = wallImage:getWidth()
+    wallHeight = wallImage:getHeight()
 end
 
 function love.update(dt)
@@ -54,6 +62,8 @@ function love.draw()
     --if gameState == 'menu' then
     --    drawMenu()
     --elseif gameState == 'game' then
+
+    drawWalls()
 
     drawTrail(cycle1)
     drawTrail(cycle2)
@@ -119,13 +129,19 @@ function drawTrail(cycle)
         local p2 = cycle.trail[i + 1]
         love.graphics.line(p1.x, p1.y, p2.x, p2.y)
     end
+end
 
-    local latest = cycle.trail[#cycle.trail]
-    local scaleX = cycle.scale
-    local scaleY = cycle.scale
-    local imageWidth = cycle.image:getWidth() * cycle.scale                                --scaleX
-    local imageHeight = cycle.image:getHeight() * cycle.scale                              --scaleY
-    love.graphics.circle('fill', latest.x, latest.y + imageHeight / 2, fixedLineWidth / 2) --fixedLineWidth now has /2
+function drawWalls()
+    local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
+
+    love.graphics.draw(wallImage, 0, 0, 0, screenWidth / wallWidth, wallHeight / wallHeight)
+
+    love.graphics.draw(wallImage, 0, screenHeight - wallHeight, 0, screenWidth / wallWidth, wallHeight / wallHeight)
+
+    love.graphics.draw(wallImage, 0, 0, 0, wallWidth / wallWidth, screenHeight / wallHeight)
+
+    love.graphics.draw(wallImage, screenWidth - wallWidth, 0, 0, wallWidth / wallWidth, screenHeight / wallHeight)
 end
 
 function debugCycleTrail(cycle)
