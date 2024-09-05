@@ -1,8 +1,8 @@
 require 'debug'
 epsilon = 1.1920928955078125e-07
 
-local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = .4 }             -- , color = { 0, 50, 255 }
-local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 0.4 } --color = { 255, 50, 0 }
+local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = 1 }            -- , color = { 0, 50, 255 }
+local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 1 } --color = { 255, 50, 0 }
 local gridSize = 40
 local cycleSpeed = 200
 local aiChangeInterval = 1
@@ -113,11 +113,15 @@ function drawCycle(cycle)
     local scaleX = cycle.scale
     local scaleY = cycle.scale
     local angle = directionAngles[cycle.dir]
+
     local imageWidth = cycle.image:getWidth() * scaleX
     local imageHeight = cycle.image:getHeight() * scaleY
-    local drawX = cycle.x + imageWidth / 2
-    local drawY = cycle.y + imageHeight / 2
-    love.graphics.draw(cycle.image, drawX, drawY, angle, scaleX, scaleY, imageWidth / 2, imageHeight / 2)
+
+    local drawX = cycle.x + imageWidth / 240
+    local drawY = cycle.y + imageHeight / 60
+
+    love.graphics.draw(cycle.image, drawX, drawY, angle, scaleX, scaleY,
+        imageWidth / 2, imageHeight / 2)
 end
 
 function drawTrail(cycle)
