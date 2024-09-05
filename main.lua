@@ -170,17 +170,21 @@ end
 function checkCollision(cycle)
     local imageWidth = cycle.image:getWidth() * cycle.scale
     local imageHeight = cycle.image:getHeight() * cycle.scale
-    local collisionDistance = fixedLineWidth / 2 -- Adjust this to match the trail's visual width
+    local collisionDistance = fixedLineWidth + imageWidth -- Adjust this to match the trail's visual width
 
     -- Check collision with the trail
-    -- for i = 1, #cycle.trail - 1 do
-    --     local p1 = cycle.trail[i]
-    --     local p2 = cycle.trail[i + 1]
-    --     local distance = pointToSegmentDistance(cycle.x, cycle.y, p1.x, p1.y, p2.x, p2.y)
-    --     if distance < collisionDistance then
-    --         return true
-    --     end
-    -- end
+    for i = 1, #cycle.trail - 1 do
+        local p1 = cycle.trail[i]
+        local p2 = cycle.trail[i + 1]
+        local distance = pointToSegmentDistance(cycle.x,
+            cycle.y, p1.x, p1.y, p2.x, p2.y)
+
+        print(string.format("Checking collision: Distance to segment (%d, %d) - (%d, %d) is %f", p1.x, p1.y, p2.x, p2.y,
+            distance)) -- debug info
+        if distance < collisionDistance then
+            return true
+        end
+    end
 
     local otherCycle = (cycle == cycle1) and cycle2 or cycle1
     for i = 1, #otherCycle.trail - 1 do
