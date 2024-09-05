@@ -1,8 +1,8 @@
 require 'debug'
 epsilon = 1.1920928955078125e-07
 
-local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 0, 1 }, scale = 0.4 }
-local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, color = { 1, 0, 0 }, ai = true, scale = 0.4 }
+local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = .4 }             -- , color = { 0, 50, 255 }
+local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 0.4 } --color = { 255, 50, 0 }
 local gridSize = 40
 local cycleSpeed = 200
 local aiChangeInterval = 1
@@ -54,9 +54,11 @@ function love.draw()
     --if gameState == 'menu' then
     --    drawMenu()
     --elseif gameState == 'game' then
+
     drawTrail(cycle1)
     drawTrail(cycle2)
 
+    love.graphics.setColor(1, 1, 1)
     drawCycle(cycle1)
     drawCycle(cycle2)
     --end
@@ -97,7 +99,6 @@ function moveCycle(cycle, dt)
     end
 end
 
--- draw a cycle with rotation
 function drawCycle(cycle)
     local scaleX = cycle.scale
     local scaleY = cycle.scale
@@ -118,7 +119,7 @@ function drawTrail(cycle)
         local p2 = cycle.trail[i + 1]
         love.graphics.line(p1.x, p1.y, p2.x, p2.y)
     end
-    -- adjust to player location
+
     local latest = cycle.trail[#cycle.trail]
     local scaleX = cycle.scale
     local scaleY = cycle.scale
@@ -161,7 +162,6 @@ function checkCollision(cycle)
     --     end
     -- end
 
-    -- Check collision with the other cycle's trail
     local otherCycle = (cycle == cycle1) and cycle2 or cycle1
     for i = 1, #otherCycle.trail - 1 do
         local p1 = otherCycle.trail[i]
@@ -180,11 +180,8 @@ function checkCollision(cycle)
     return false
 end
 
--- change AI's direction
 function changeAIDirection(cycle)
     local possibleDirections = { 'up', 'down', 'left', 'right' }
-    local bestDirection = nil
-    local maxFreeSpace = -1
 
     local oppositeDir = getOppositeDirection(cycle.dir)
     for i = #possibleDirections, 1, -1 do
@@ -192,16 +189,6 @@ function changeAIDirection(cycle)
             table.remove(possibleDirections, i)
         end
     end
-    -- math.randomseed(os.time())
-    -- local newDir = possibleDirections[math.random(#possibleDirections)] -- can not do math.radomseed causes crash
-
-
-    -- while isDirectionBlocked(cycle, newDir) do
-    --     newDir = possibleDirections[math.random(#possibleDirections)]
-    -- end
-
-    -- cycle.dir = newDir
-
     repeat
         newDir = possibleDirections[math.random(#possibleDirections)]
     until not isDirectionBlocked(cycle, newDir)
