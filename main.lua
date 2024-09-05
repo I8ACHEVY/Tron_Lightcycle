@@ -2,8 +2,8 @@ require 'debug'
 epsilon = 1.1920928955078125e-07
 
 local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = 1 }
-local cycle2 = { x = 1000, y = 800, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 1 }
-local gridSize = 100
+local cycle2 = { x = 1200, y = 900, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 1 }
+local gridSize = 400
 local cycleSpeed = 200
 local aiChangeInterval = 1
 local aiTimer = 0
@@ -12,6 +12,11 @@ local fixedLineWidth = 5
 local wallImage = nil
 local wallWidth = 10
 local wallHeight = 10
+
+local cycle1Score = 0
+local cycle1SurvivalTime = 0
+local cycle1Lives = 3
+local lifeImage = nil
 
 --local gameState = require "screens/menu"
 
@@ -36,6 +41,8 @@ function love.load()
     wallImage = love.graphics.newImage('assets/images/wall.png')
     wallWidth = wallImage:getWidth()
     wallHeight = wallImage:getHeight()
+
+    lifeImage = love.graphics.newImage('assets/images/Tron_33.png')
 end
 
 function love.update(dt)
@@ -46,8 +53,22 @@ function love.update(dt)
         --gameState = 'menu'
         love.event.quit()
         --end
+        if checkCollision(cycle1) then
+            cycle1Lives = cycle1Lives - 1
+            if cycle1Lives > 0 then
+                cycle1.x = 100
+                cycle1.y = 100
+                cycle1.dir = 'right'
+                cycle1.trail = {}
+            else
+                love.event.quit()
+            end
+        end
     end
-
+    if not (checkCollision(cycle1) or checkCollision(cycle2)) then
+        cycle1SurvivalTime = cycle1SurvivalTime + dt
+        cycle1Score = math.floor(cycle1SurvivalTime)
+    end
     -- AI logic
     if cycle2.ai then
         aiTimer = aiTimer + dt
@@ -71,7 +92,27 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     drawCycle(cycle1)
     drawCycle(cycle2)
-    --end
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont(24))
+    love.graphics.print(" Score: " .. cycle1Score, 600, 10)
+
+    local lifeImageWidth = lifeImage:getWidth()
+    local lifeImageHeight = lifeImage:getHeight()
+    local livesStartX = 300
+    local livesStartY = 6
+    local spacing = lifeImageWidth + 10 -- Space between life images
+
+    for i = 1, cycle1Lives do
+        love.graphics.draw(lifeImage, livesStartX + (i - 1) * spacing, livesStartY)
+    end
+
+    if cycle1Lives <= 0 then
+        love.graphics.setFont(love.graphics.newFont(48))
+        love.graphics.setColor(1, 0, 0)
+        love.graphics.printf("Game Over", 0, love.graphics.getHeight(
+        ) / 2 - 50, love.graphics.getWidth(), "center")
+    end
 end
 
 function love.keypressed(key)
@@ -104,10 +145,11 @@ function moveCycle(cycle, dt)
     if cycle.dir == 'left' then cycle.x = cycle.x - cycleSpeed * dt end
     if cycle.dir == 'right' then cycle.x = cycle.x + cycleSpeed * dt end
 
-    local buffer = 10
-    local trailX = prevX + (buffer * math.cos(directionAngles[cycle.dir]))
-    local trailY = prevY + (buffer * math.sin(directionAngles[cycle.dir]))
-    table.insert(cycle.trail, { x = trailX, y = trailY })
+    -- local buffer = -80
+
+    -- local trailX = prevX + (buffer * math.cos(directionAngles[cycle.dir]))
+    -- local trailY = prevY + (buffer * math.sin(directionAngles[cycle.dir]))
+    -- table.insert(cycle.trail, { x = trailX, y = trailY })
 
     if checkCollision(cycle) then
         cycle.x, cycle.y = prevX, prevY
@@ -153,13 +195,6 @@ function drawWalls()
     love.graphics.draw(wallImage, screenWidth - wallWidth, 0, 0, wallWidth / wallWidth, screenHeight / wallHeight)
 end
 
-function debugCycleTrail(cycle)
-    print("Trail length: ", #cycle.trail)
-    for i, point in ipairs(cycle.trail) do
-        print("Point ", i, ": ", point.x, point.y)
-    end
-end
-
 function pointToSegmentDistance(px, py, x1, y1, x2, y2)
     local lineLengthSquared = (x2 - x1) ^ 2 + (y2 - y1) ^ 2
     if lineLengthSquared == 0 then
@@ -178,18 +213,18 @@ function checkCollision(cycle)
     local collisionDistance = fixedLineWidth -- Adjust this to match the trail's visual width
 
     -- Check collision with the trail
-    for i = 1, #cycle.trail - 1 do
-        local p1 = cycle.trail[i]
-        local p2 = cycle.trail[i + 1]
-        local distance = pointToSegmentDistance(cycle.x,
-            cycle.y, p1.x, p1.y, p2.x, p2.y)
+    -- for i = 1, #cycle.trail - 1 do
+    --     local p1 = cycle.trail[i]
+    --     local p2 = cycle.trail[i + 1]
+    --     local distance = pointToSegmentDistance(cycle.x,
+    --         cycle.y, p1.x, p1.y, p2.x, p2.y)
 
-        print(string.format("Checking collision: Distance to segment (%d, %d) - (%d, %d) is %f", p1.x, p1.y, p2.x, p2.y,
-            distance)) -- debug info
-        if distance < collisionDistance then
-            return true
-        end
-    end
+    --     print(string.format("Checking collision: Distance to segment (%d, %d) - (%d, %d) is %f", p1.x, p1.y, p2.x, p2.y,
+    --         distance)) -- debug info
+    --     if distance < collisionDistance then
+    --         return true
+    --     end
+    -- end
 
     local otherCycle = (cycle == cycle1) and cycle2 or cycle1
     for i = 1, #otherCycle.trail - 1 do
@@ -205,7 +240,6 @@ function checkCollision(cycle)
         cycle.y < 0 or cycle.y + imageHeight > love.graphics.getHeight() then
         return true
     end
-
     return false
 end
 
