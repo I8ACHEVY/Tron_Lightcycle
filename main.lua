@@ -1,10 +1,12 @@
 require 'debug'
-epsilon = 1.1920928955078125e-07
+local Game = require 'screens/game'
+local Menu = require 'screens/menu'
+--local SFX = require 'assets/sfx'
 
-local cycle1 = { x = 100, y = 100, dir = 'right', trail = {}, image = nil, color = { 0, 50, 255 }, scale = 1 }
-local cycle2 = { x = 1200, y = 900, dir = 'left', trail = {}, image = nil, ai = true, color = { 255, 50, 0 }, scale = 1 }
-local gridSize = 400
-local cycleSpeed = 200
+Highscore = {}
+Tron = {}
+Abraxas = {}
+
 local aiChangeInterval = 1
 local aiTimer = 0
 local fixedLineWidth = 5
@@ -13,9 +15,9 @@ local wallImage = nil
 local wallWidth = 10
 local wallHeight = 10
 
-local cycle1Score = 0
-local cycle1SurvivalTime = 0
-local cycle1Lives = 3
+
+local tronSurvivalTime = 0
+local tronLives = 3
 local lifeImage = nil
 
 --local gameState = require "screens/menu"
@@ -31,12 +33,14 @@ local directionAngles = {
 }
 
 function love.load()
+    require "tron"
+    require "abraxas"
     love.window.setMode(1300, 1000)
 
     love.graphics.setBackgroundColor(0, 0, 0)
 
-    cycle1.image = love.graphics.newImage('assets/images/Tron_50.png')
-    cycle2.image = love.graphics.newImage('assets/images/Tron2_50.png')
+    tron.image = love.graphics.newImage('assets/images/Tron_50.png')
+    abraxas.image = love.graphics.newImage('assets/images/Tron2_50.png')
 
     wallImage = love.graphics.newImage('assets/images/wall.png')
     wallWidth = wallImage:getWidth()
@@ -47,33 +51,33 @@ end
 
 function love.update(dt)
     --if gameState == 'game' then
-    moveCycle(cycle1, dt)
-    moveCycle(cycle2, dt)
-    if checkCollision(cycle1) or checkCollision(cycle2) then
+    moveCycle(tron, dt)
+    moveCycle(abraxas, dt)
+    if checkCollision(tron) or checkCollision(abraxas) then
         --gameState = 'menu'
         love.event.quit()
         --end
-        if checkCollision(cycle1) then
-            cycle1Lives = cycle1Lives - 1
-            if cycle1Lives > 0 then
-                cycle1.x = 100
-                cycle1.y = 100
-                cycle1.dir = 'right'
-                cycle1.trail = {}
+        if checkCollision(tron) then
+            tronLives = tronLives - 1
+            if tronLives > 0 then
+                tron.x = 100
+                tron.y = 100
+                tron.dir = 'right'
+                tron.trail = {}
             else
                 love.event.quit()
             end
         end
     end
-    if not (checkCollision(cycle1) or checkCollision(cycle2)) then
-        cycle1SurvivalTime = cycle1SurvivalTime + dt
-        cycle1Score = math.floor(cycle1SurvivalTime)
+    if not (checkCollision(tron) or checkCollision(abraxas)) then
+        tronSurvivalTime = tronSurvivalTime + dt
+        tronScore = math.floor(tronSurvivalTime)
     end
     -- AI logic
-    if cycle2.ai then
+    if abraxas.ai then
         aiTimer = aiTimer + dt
         if aiTimer >= aiChangeInterval then
-            changeAIDirection(cycle2)
+            changeAIDirection(abraxas)
             aiTimer = 0
         end
     end
@@ -86,16 +90,16 @@ function love.draw()
 
     drawWalls()
 
-    drawTrail(cycle1)
-    drawTrail(cycle2)
+    drawTrail(tron)
+    drawTrail(abraxas)
 
     love.graphics.setColor(1, 1, 1)
-    drawCycle(cycle1)
-    drawCycle(cycle2)
+    drawCycle(tron)
+    drawCycle(abraxas)
 
     love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(love.graphics.newFont(24))
-    love.graphics.print(" Score: " .. cycle1Score, 600, 10)
+    love.graphics.print(" Score: " .. tronScore, 600, 10)
 
     local lifeImageWidth = lifeImage:getWidth()
     local lifeImageHeight = lifeImage:getHeight()
@@ -103,11 +107,11 @@ function love.draw()
     local livesStartY = 6
     local spacing = lifeImageWidth + 10 -- Space between life images
 
-    for i = 1, cycle1Lives do
+    for i = 1, tronLives do
         love.graphics.draw(lifeImage, livesStartX + (i - 1) * spacing, livesStartY)
     end
 
-    if cycle1Lives <= 0 then
+    if tronLives <= 0 then
         love.graphics.setFont(love.graphics.newFont(48))
         love.graphics.setColor(1, 0, 0)
         love.graphics.printf("Game Over", 0, love.graphics.getHeight(
@@ -115,46 +119,34 @@ function love.draw()
     end
 end
 
-function love.keypressed(key)
-    -- if gameState == 'menu' then
-    --     if key == 'return' then
-    --         gameState = 'playing'
-    --     elseif key == 'i' then
-    --         gameState = 'instructions'
-    --     elseif key == 'q' then
-    --         love.event.quit()
-    --     end
-    -- elseif gameState == 'instructions' then
-    --     if key == 'return' then
-    --         gameState = 'menu'
-    --     end
-    --elseif gameState == 'playing' then
-    if key == 'w' or key == 'up' then cycle1.dir = 'up' end
-    if key == 's' or key == 'down' then cycle1.dir = 'down' end
-    if key == 'a' or key == 'left' then cycle1.dir = 'left' end
-    if key == 'd' or key == 'right' then cycle1.dir = 'right' end
-    --end
-end
-
-function moveCycle(cycle, dt)
-    local prevX, prevY = cycle.x, cycle.y
-    table.insert(cycle.trail, { x = prevX, y = prevY }) -- Edit Trail location, orig = { x = cycle.x, y = cycle.y })
-
-    if cycle.dir == 'up' then cycle.y = cycle.y - cycleSpeed * dt end
-    if cycle.dir == 'down' then cycle.y = cycle.y + cycleSpeed * dt end
-    if cycle.dir == 'left' then cycle.x = cycle.x - cycleSpeed * dt end
-    if cycle.dir == 'right' then cycle.x = cycle.x + cycleSpeed * dt end
-
-    -- local buffer = -80
-
-    -- local trailX = prevX + (buffer * math.cos(directionAngles[cycle.dir]))
-    -- local trailY = prevY + (buffer * math.sin(directionAngles[cycle.dir]))
-    -- table.insert(cycle.trail, { x = trailX, y = trailY })
-
-    if checkCollision(cycle) then
-        cycle.x, cycle.y = prevX, prevY
-    end
-end
+-- function love.keypressed(key)
+--     if gameState == 'menu' then
+--         if key == 'return' then
+--             gameState = 'playing'
+--         elseif key == 'i' then
+--             gameState = 'instructions'
+--         elseif key == 'esc' then
+--             love.event.quit()
+--         end
+--     elseif gameState == 'instructions' then
+--         if key == 'return' then
+--             gameState = 'menu'
+--         end
+--     elseif gameState == 'playing' then
+--         if key == 'esc' then
+--             love.event.quit()
+--         end
+--     end
+--     if key == 'm' then
+--         if SoundVolume == 1 then
+--             SoundVolume = 0
+--         else
+--             SoundVolume = 1
+--         end
+--         love.audio.setVolume(SoundVolume)
+--     end
+--     tron_states[CurrentState].keypressed(key)
+-- end
 
 function drawCycle(cycle)
     local scaleX = cycle.scale
@@ -223,7 +215,7 @@ function checkCollision(cycle)
         end
     end
 
-    local otherCycle = (cycle == cycle1) and cycle2 or cycle1
+    local otherCycle = (cycle == tron) and abraxas or tron
     for i = 1, #otherCycle.trail - 1 do
         local p1 = otherCycle.trail[i]
         local p2 = otherCycle.trail[i + 1]
@@ -240,87 +232,57 @@ function checkCollision(cycle)
     return false
 end
 
-function changeAIDirection(cycle)
-    local possibleDirections = { 'up', 'down', 'left', 'right' }
+--change ai direction
 
-    local oppositeDir = getOppositeDirection(cycle.dir)
-    for i = #possibleDirections, 1, -1 do
-        if possibleDirections[i] == oppositeDir then
-            table.remove(possibleDirections, i)
-        end
+-- is direction blocked
+
+-- calc free space
+
+function WriteScore()
+    local tmp = {}
+    tmp[1] = tron.score
+    for a = 1, #HighScore do
+        table.insert(tmp, HighScore[a])
     end
-    repeat
-        newDir = possibleDirections[math.random(#possibleDirections)]
-    until not isDirectionBlocked(cycle, newDir)
-
-    cycle.dir = newDir
-end
-
-function getOppositeDirection(direction)
-    if direction == 'up' then
-        return 'down'
-    elseif direction == 'down' then
-        return 'up'
-    elseif direction == 'left' then
-        return 'right'
-    elseif direction == 'right' then
-        return 'left'
+    local reset = ''
+    for a = 1, #tmp do
+        reset = reset .. tmp[a] .. '\n'
+    end
+    local f = io.open('highscore.score', 'w+')
+    if f ~= nil then
+        f:write(reset)
+        f:close()
     end
 end
 
-function isDirectionBlocked(cycle, direction)
-    local nextX = cycle.x
-    local nextY = cycle.y
-    if direction == 'up' then
-        nextY = nextY - gridSize
-    elseif direction == 'down' then
-        nextY = nextY + gridSize
-    elseif direction == 'left' then
-        nextX = nextX - gridSize
-    elseif direction == 'right' then
-        nextX = nextX + gridSize
-    end
-
-    if nextX < 0 or nextX >= love.graphics.getWidth() or
-        nextY < 0 or nextY >= love.graphics.getHeight() then
+function FileExists(name)
+    local f = io.open(name, "r")
+    if f ~= nil then
+        io.close(f)
         return true
+    else
+        return false
     end
-
-    for _, point in ipairs(cycle1.trail) do
-        if nextX == point.x and nextY == point.y then
-            return true
-        end
-    end
-
-    for _, point in ipairs(cycle2.trail) do
-        if nextX == point.x and nextY == point.y then
-            return true
-        end
-    end
-
-    return false
 end
 
-function calculateFreeSpace(x, y)
-    local space = 0
-    local directions = { 'up', 'down', 'left', 'right' }
-
-    if x < 0 or x >= love.graphics.getWidth() or
-        y < 0 or y >= love.graphics.getHeight() then
-        return true
+function LinesFrom(file)
+    if not FileExists(file) then return { 0 } end
+    Lines = {}
+    for line in io.lines(file) do
+        Lines[#Lines + 1] = tonumber(line)
     end
+    return Lines
+end
 
-    for _, point in ipairs(cycle1.trail) do
-        if x == point.x and y == point.y then
-            return true
+function GetHighScore()
+    if FileExists('highscore.score') then
+        HighScore = LinesFrom('highscore.score')
+    else
+        local f = io.open('highscore.score', 'w')
+        if f ~= nil then
+            f:write('0')
+            f:close()
+            HighScore = { 0 }
         end
     end
-
-    for _, point in ipairs(cycle2.trail) do
-        if x == point.x and y == point.y then
-            return true
-        end
-    end
-
-    return false
 end
