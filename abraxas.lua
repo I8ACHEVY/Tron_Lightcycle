@@ -11,37 +11,8 @@ abraxas =
 }
 
 require 'tron'
-local gridSize = 400
 local cycleSpeed = 200
 
-function moveCycle(cycle, dt)
-    local prevX, prevY = cycle.x, cycle.y
-    table.insert(cycle.trail, { x = prevX, y = prevY })
-
-    if cycle.dir == 'up' then cycle.y = cycle.y - cycleSpeed * dt end
-    if cycle.dir == 'down' then cycle.y = cycle.y + cycleSpeed * dt end
-    if cycle.dir == 'left' then cycle.x = cycle.x - cycleSpeed * dt end
-    if cycle.dir == 'right' then cycle.x = cycle.x + cycleSpeed * dt end
-    if checkCollision(cycle) then
-        cycle.x, cycle.y = prevX, prevY
-    end
-end
-
-function changeAIDirection(cycle)
-    local possibleDirections = { 'up', 'down', 'left', 'right' }
-
-    local oppositeDir = getOppositeDirection(cycle.dir)
-    for i = #possibleDirections, 1, -1 do
-        if possibleDirections[i] == oppositeDir then
-            table.remove(possibleDirections, i)
-        end
-    end
-    repeat
-        newDir = possibleDirections[math.random(#possibleDirections)]
-    until not isDirectionBlocked(cycle, newDir)
-
-    cycle.dir = newDir
-end
 
 function getOppositeDirection(direction)
     if direction == 'up' then
@@ -56,16 +27,16 @@ function getOppositeDirection(direction)
 end
 
 function isDirectionBlocked(cycle, direction)
-    local nextX = cycle.x
-    local nextY = cycle.y
+    local nextX, nextY = cycle.x, cycle.y
+
     if direction == 'up' then
-        nextY = nextY - gridSize
+        nextY = nextY - cycleSpeed
     elseif direction == 'down' then
-        nextY = nextY + gridSize
+        nextY = nextY + cycleSpeed
     elseif direction == 'left' then
-        nextX = nextX - gridSize
+        nextX = nextX - cycleSpeed
     elseif direction == 'right' then
-        nextX = nextX + gridSize
+        nextX = nextX + cycleSpeed
     end
 
     if nextX < 0 or nextX >= love.graphics.getWidth() or
@@ -73,14 +44,18 @@ function isDirectionBlocked(cycle, direction)
         return true
     end
 
+    return calculateTrailCollision(nextX, nextY)
+end
+
+function calculateTrailCollision(x, y)
     for _, point in ipairs(tron.trail) do
-        if nextX == point.x and nextY == point.y then
+        if x == point.x and y == point.y then
             return true
         end
     end
 
     for _, point in ipairs(abraxas.trail) do
-        if nextX == point.x and nextY == point.y then
+        if x == point.x and y == point.y then
             return true
         end
     end
@@ -88,26 +63,98 @@ function isDirectionBlocked(cycle, direction)
     return false
 end
 
-function calculateFreeSpace(x, y)
-    local space = 0
-    local directions = { 'up', 'down', 'left', 'right' }
+function getBestDirection(cycle)
+    local bestDirection
+    local maxDistance = math.huge
 
-    if x < 0 or x >= love.graphics.getWidth() or
-        y < 0 or y >= love.graphics.getHeight() then
-        return true
+    local possibleDirections = { 'up', 'down', 'left', 'right' }
+    local oppositeDir = getOppositeDirection(cycle.dir)
+
+    for i = #possibleDirections, 1, -1 do
+        if possibleDirections[i] == oppositeDir then
+            table.remove(possibleDirections, i)
+        end
     end
 
+    for _, direction in ipairs(possibleDirections) do
+        if not isDirectionBlocked(cycle, direction) then
+            local nextX, nextY = cycle.x, cycle.y
+
+            if direction == 'up' then
+                nextY = nextY - cycleSpeed
+            elseif direction == 'down' then
+                nextY = nextY + cycleSpeed
+            elseif direction == 'left' then
+                nextX = nextX - cycleSpeed
+            elseif direction == 'right' then
+                nextX = nextX + cycleSpeed
+            end
+
+            local distance = getDistanceToNearestObstacle(nextX, nextY)
+
+            if distance < maxDistance then
+                maxDistance = distance
+                bestDirection = direction
+            end
+        end
+    end
+
+    return bestDirection
+end
+
+function getDistanceToNearestObstacle(x, y)
+    local minDistance = math.huge
     for _, point in ipairs(tron.trail) do
-        if x == point.x and y == point.y then
-            return true
+        local d = math.sqrt((x - point.x) ^ 2 + (y - point.y) ^ 2)
+        if d < minDistance then
+            minDistance = d
         end
     end
 
     for _, point in ipairs(abraxas.trail) do
-        if x == point.x and y == point.y then
-            return true
+        local d = math.sqrt((x - point.x) ^ 2 + (y - point.y) ^ 2)
+        if d < minDistance then
+            minDistance = d
         end
     end
 
-    return false
+    return minDistance
+end
+
+function changeAIDirection(cycle)
+    --     local possibleDirections = { 'up', 'down', 'left', 'right' }
+    --     local oppositeDir = getOppositeDirection(cycle.dir)
+
+    --     for i = #possibleDirections, 1, -1 do
+    --         if possibleDirections[i] == oppositeDir then
+    --             table.remove(possibleDirections, i)
+    --         end
+    --     end
+    --     repeat
+    --         newDir = possibleDirections[math.random(#possibleDirections)]
+    --     until not isDirectionBlocked(cycle, newDir)
+
+    --     print("AI changeing direction to: " .. newDir)
+
+    --     cycle.dir = newDir
+    -- end
+
+    local newDir = getBestDirection(cycle)
+    if newDir then
+        print("AI changing direction to: " .. newDir)
+        cycle.dir = newDir
+    end
+end
+
+function moveCycle(cycle, dt)
+    local prevX, prevY = cycle.x, cycle.y
+    table.insert(cycle.trail, { x = prevX, y = prevY })
+
+    if cycle.dir == 'up' then cycle.y = cycle.y - cycleSpeed * dt end
+    if cycle.dir == 'down' then cycle.y = cycle.y + cycleSpeed * dt end
+    if cycle.dir == 'left' then cycle.x = cycle.x - cycleSpeed * dt end
+    if cycle.dir == 'right' then cycle.x = cycle.x + cycleSpeed * dt end
+    if checkCollision(cycle) then
+        cycle.x, cycle.y = prevX, prevY
+    end
 end
