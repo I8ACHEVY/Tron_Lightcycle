@@ -15,16 +15,21 @@ local wallImage = nil
 local wallWidth = 10
 local wallHeight = 10
 
-
 local tronSurvivalTime = 0
 local tronLives = 3
 local lifeImage = nil
 
---local gameState = require "screens/menu"
+local resetComplete = false
+local clickedMouse = false
 
--- local Game = require "screens/game"
+local function reset()
+    --     tron = tron(3, sfx)
+    game = Game()
+    menu = Menu()
 
--- Rotation angles for directions (in radians)
+    collision = false
+end
+
 local directionAngles = {
     up = -math.pi / 2,  -- 90 degrees counterclockwise
     down = math.pi / 2, -- 90 degrees clockwise
@@ -35,7 +40,12 @@ local directionAngles = {
 function love.load()
     require "tron"
     require "abraxas"
+    love.mouse.setVisible(false)
     love.window.setMode(1300, 1000)
+    mouse_x, mouse_y = 0, 0
+    reset()
+    game = Game()
+    menu = Menu(game, tron)
 
     love.graphics.setBackgroundColor(0, 0, 0)
 
@@ -49,14 +59,26 @@ function love.load()
     lifeImage = love.graphics.newImage('assets/images/Tron_33.png')
 end
 
+function love.mousepressed(x, y, button, istouch, presses)
+    if button == 1 then
+        if game.state.running then
+            clickedMouse = false
+        else
+            clickedMouse = true
+        end
+    end
+end
+
 function love.update(dt)
-    --if gameState == 'game' then
-    moveCycle(tron, dt)
-    moveCycle(abraxas, dt)
-    if checkCollision(tron) or checkCollision(abraxas) then
-        --gameState = 'menu'
-        love.event.quit()
-        --end
+    mouse_x, mouse_y = love.mouse.getPosition()
+    if game.state.running then
+        moveCycle(tron, dt)
+        moveCycle(abraxas, dt)
+        if checkCollision(tron) or checkCollision(abraxas) then
+            if tron.lives - 1 <= 0 then
+                game:changeGameState("ended")
+            end
+        end
         if checkCollision(tron) then
             tronLives = tronLives - 1
             if tronLives > 0 then
@@ -80,73 +102,72 @@ function love.update(dt)
             changeAIDirection(abraxas)
             aiTimer = 0
         end
+    elseif game.state.menu then
+        menu:run(clickedMouse)
+        clickedMouse = false
+        if not resetComplete then
+            reset()
+            resetComplete = true
+        end
+    elseif game.state.ended then
+        resetComplete = false
     end
 end
 
 function love.draw()
-    --if gameState == 'menu' then
-    --    drawMenu()
-    --elseif gameState == 'game' then
+    if game.state.running or game.state.paused then
+        drawWalls()
 
-    drawWalls()
+        drawTrail(tron)
+        drawTrail(abraxas)
 
-    drawTrail(tron)
-    drawTrail(abraxas)
+        love.graphics.setColor(1, 1, 1)
+        drawCycle(tron)
+        drawCycle(abraxas)
 
-    love.graphics.setColor(1, 1, 1)
-    drawCycle(tron)
-    drawCycle(abraxas)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(love.graphics.newFont(24))
+        love.graphics.print(" Score: " .. tronScore, 600, 10)
 
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(love.graphics.newFont(24))
-    love.graphics.print(" Score: " .. tronScore, 600, 10)
+        local lifeImageWidth = lifeImage:getWidth()
+        local lifeImageHeight = lifeImage:getHeight()
+        local livesStartX = 300
+        local livesStartY = 6
+        local spacing = lifeImageWidth + 10 -- Space between life images
 
-    local lifeImageWidth = lifeImage:getWidth()
-    local lifeImageHeight = lifeImage:getHeight()
-    local livesStartX = 300
-    local livesStartY = 6
-    local spacing = lifeImageWidth + 10 -- Space between life images
+        for i = 1, tronLives do
+            love.graphics.draw(lifeImage, livesStartX + (i - 1) * spacing, livesStartY)
+        end
 
-    for i = 1, tronLives do
-        love.graphics.draw(lifeImage, livesStartX + (i - 1) * spacing, livesStartY)
+        if tronLives <= 0 then
+            love.graphics.setFont(love.graphics.newFont(48))
+            love.graphics.setColor(1, 0, 0)
+            love.graphics.printf("Game Over", 0, love.graphics.getHeight(
+            ) / 2 - 50, love.graphics.getWidth(), "center")
+        end
+
+        game:draw(game.state.paused)
+    elseif game.state.menu then
+        menu:draw()
     end
 
-    if tronLives <= 0 then
-        love.graphics.setFont(love.graphics.newFont(48))
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.printf("Game Over", 0, love.graphics.getHeight(
-        ) / 2 - 50, love.graphics.getWidth(), "center")
+    love.graphics.setColor(1, 1, 1, 1)
+
+    if not game.state.running then
+        love.graphics.circle('fill', mouse_x, mouse_y, 10)
     end
 end
 
--- function love.keypressed(key)
---     if gameState == 'menu' then
---         if key == 'return' then
---             gameState = 'playing'
---         elseif key == 'i' then
---             gameState = 'instructions'
---         elseif key == 'esc' then
---             love.event.quit()
---         end
---     elseif gameState == 'instructions' then
---         if key == 'return' then
---             gameState = 'menu'
---         end
---     elseif gameState == 'playing' then
---         if key == 'esc' then
---             love.event.quit()
---         end
---     end
---     if key == 'm' then
---         if SoundVolume == 1 then
---             SoundVolume = 0
---         else
---             SoundVolume = 1
---         end
---         love.audio.setVolume(SoundVolume)
---     end
---     tron_states[CurrentState].keypressed(key)
--- end
+function love.keypressed(key)
+    if key == 'm' then
+        if SoundVolume == 1 then
+            SoundVolume = 0
+        else
+            SoundVolume = 1
+        end
+        love.audio.setVolume(SoundVolume)
+    end
+end
 
 function drawCycle(cycle)
     local scaleX = cycle.scale
@@ -231,12 +252,6 @@ function checkCollision(cycle)
     end
     return false
 end
-
---change ai direction
-
--- is direction blocked
-
--- calc free space
 
 function WriteScore()
     local tmp = {}

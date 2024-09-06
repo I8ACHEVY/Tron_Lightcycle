@@ -41,7 +41,7 @@ function Text(text, x, y, font_size, fade_in, fade_out, wrap_width, align, opaci
     }
 
     if fade_in then
-        opacity = 0.1 -- if should fade in, then start at low opacity
+        opacity = 0.1
     end
 
     return {
@@ -64,9 +64,7 @@ function Text(text, x, y, font_size, fade_in, fade_out, wrap_width, align, opaci
 
         draw = function(self, tbl_text, index)
             if self.opacity > 0 then
-                -- when pausing, the below will still fade out, it will not be paused
                 if fade_in then
-                    -- only render text if visible, otherwise skip it
                     if self.opacity < 1 then
                         self.opacity = self.opacity + (1 / TEXT_FADE_DUR / love.timer.getFPS())
                     else
@@ -81,7 +79,7 @@ function Text(text, x, y, font_size, fade_in, fade_out, wrap_width, align, opaci
                 love.graphics.printf(self.text, self.x, self.y, wrap_width, align)
                 love.graphics.setFont(fonts["p"])
             else
-                table.remove(tbl_text, index) -- remove yourself once you dissapear
+                table.remove(tbl_text, index)
                 return false
             end
 

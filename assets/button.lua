@@ -17,8 +17,8 @@ function Button(func, text_color, button_color, width, height, text, text_align,
         btn_text.x = button_x
     end
     return {
-        text_color = text_color or { r = 1, g = 1, b = 1 },     -- white
-        button_color = button_color or { r = 0, g = 0, b = 0 }, -- black
+        text_color = text_color or { r = 1, g = 1, b = 1 },
+        button_color = button_color or { r = 0, g = 0, b = 0 },
         width = width or 100,
         height = height or 100,
         text = text or "No text added",

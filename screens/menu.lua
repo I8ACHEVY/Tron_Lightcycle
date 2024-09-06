@@ -1,9 +1,9 @@
 local Button = require "assets/button"
 
-function Menu(game, player, sfx)
+function Menu(game, tron)
     local funcs = {
         newGame = function()
-            game:startNewGame(player)
+            game:startNewGame()
         end,
         quitGame = function()
             love.event.quit()
@@ -26,7 +26,7 @@ function Menu(game, player, sfx)
             for name, button in pairs(buttons) do
                 if button:checkHover(mouse_x, mouse_y, 10) then
                     -- play click sfx
-                    sfx:playFX("select", "single")
+                    -- sfx:playFX("select", "single")
 
                     if clicked then
                         button:click()
@@ -36,10 +36,10 @@ function Menu(game, player, sfx)
 
                     button:setTextColor(0.8, 0.2, 0.2)
                 else
-                    -- allows to play sfx again
-                    if self.focused == name then
-                        sfx:setFXPlayed(false)
-                    end
+                    -- -- allows to play sfx again
+                    -- if self.focused == name then
+                    --     sfx:setFXPlayed(false)
+                    -- end
 
                     button:setTextColor(1, 1, 1)
                 end
