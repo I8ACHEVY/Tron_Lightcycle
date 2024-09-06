@@ -44,10 +44,11 @@ function isDirectionBlocked(cycle, direction)
         return true
     end
 
-    return calculateTrailCollision(nextX, nextY)
+    return calculateTrailCollision(nextX, nextY, tron.trail) or
+        calculateTrailCollision(nextX, nextY, abraxas.trail)
 end
 
-function calculateTrailCollision(x, y)
+function calculateTrailCollision(x, y, trail)
     for _, point in ipairs(tron.trail) do
         if x == point.x and y == point.y then
             return true
@@ -122,27 +123,12 @@ function getDistanceToNearestObstacle(x, y)
 end
 
 function changeAIDirection(cycle)
-    --     local possibleDirections = { 'up', 'down', 'left', 'right' }
-    --     local oppositeDir = getOppositeDirection(cycle.dir)
-
-    --     for i = #possibleDirections, 1, -1 do
-    --         if possibleDirections[i] == oppositeDir then
-    --             table.remove(possibleDirections, i)
-    --         end
-    --     end
-    --     repeat
-    --         newDir = possibleDirections[math.random(#possibleDirections)]
-    --     until not isDirectionBlocked(cycle, newDir)
-
-    --     print("AI changeing direction to: " .. newDir)
-
-    --     cycle.dir = newDir
-    -- end
-
     local newDir = getBestDirection(cycle)
     if newDir then
         print("AI changing direction to: " .. newDir)
         cycle.dir = newDir
+    else
+        print("AI could not find safe direction; trapped.")
     end
 end
 
