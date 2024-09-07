@@ -86,7 +86,7 @@ function love.update(dt)
                 Tron.dir = 'right'
                 Tron.trail = {}
             else
-                love.event.quit()
+                game:changeGameState("ended")
             end
         end
     end
