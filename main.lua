@@ -86,15 +86,29 @@ function love.update(dt)
                 Tron.y = 100
                 Tron.dir = 'right'
                 Tron.trail = {}
+                abraxas.x = 1200
+                abraxas.y = 900
+                abraxas.dir = 'left'
+                abraxas.trail = {}
             else
                 game:changeGameState("ended")
             end
+        elseif checkCollision(abraxas) then
+            game.score = Tron.lastScore * game.score
+            Tron.x = 100
+            Tron.y = 100
+            Tron.dir = 'right'
+            Tron.trail = {}
+            abraxas.x = 1200
+            abraxas.y = 900
+            abraxas.dir = 'left'
+            abraxas.trail = {}
         end
     end
     if not (checkCollision(Tron) or checkCollision(abraxas)) then
         tronSurvivalTime = tronSurvivalTime + dt * 2
         game.score = math.floor(tronSurvivalTime)
-        game.high_score = math.floor(tronSurvivalTime)
+        game.high_score = game.score --GetHighScore
     end
     -- AI logic
     if abraxas.ai then
