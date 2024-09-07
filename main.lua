@@ -93,6 +93,7 @@ function love.update(dt)
     if not (checkCollision(Tron) or checkCollision(abraxas)) then
         tronSurvivalTime = tronSurvivalTime + dt * 2
         game.score = math.floor(tronSurvivalTime)
+        game.high_score = math.floor(tronSurvivalTime)
     end
     -- AI logic
     if abraxas.ai then

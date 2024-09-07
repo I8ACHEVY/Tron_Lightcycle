@@ -10,6 +10,7 @@ Tron =
     lastScore = 0,
     score = 0,
     cycleSpeed = 200,
+    lives = 3
 }
 
 function Tron:update(dt)
