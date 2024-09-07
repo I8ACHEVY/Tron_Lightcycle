@@ -23,6 +23,7 @@ local clickedMouse = false
 
 local function reset()
     --tron = tron(3)
+    --abraxas = Abraxas()
     game = Game()
     menu = Menu()
 
