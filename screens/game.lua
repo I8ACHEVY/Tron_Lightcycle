@@ -1,4 +1,5 @@
-local Text = require "/assets/text"
+local love = require "love"
+local Text = require "assets/text"
 
 function Game(save_data)
     return {
@@ -59,35 +60,35 @@ function Game(save_data)
                 end
             end
 
-            -- Text(
-            --     "SCORE: " .. self.score,
-            --     -20,
-            --     10,
-            --     "h4",
-            --     false,
-            --     false,
-            --     love.graphics.getWidth(),
-            --     "right",
-            --     faded and opacity or 0.6
-            -- ):draw()
+            Text(
+                "SCORE: " .. self.score,
+                -80,
+                10,
+                "h4",
+                false,
+                false,
+                love.graphics.getWidth(),
+                "right",
+                faded and opacity or 0.8
+            ):draw()
 
-            -- Text(
-            --     "HIGH SCORE: " .. self.high_score,
-            --     0,
-            --     10,
-            --     "h5",
-            --     false,
-            --     false,
-            --     love.graphics.getWidth(),
-            --     "center",
-            --     faded and opacity or 0.5
-            -- ):draw()
+            Text(
+                "HIGH SCORE: " .. self.high_score,
+                0,
+                10,
+                "h5",
+                false,
+                false,
+                love.graphics.getWidth(),
+                "center",
+                faded and opacity or 0.8
+            ):draw()
 
             if faded then
                 Text(
                     "PAUSED",
                     0,
-                    love.graphics.getHeight() * 0.4,
+                    love.graphics.getHeight() * 0.6,
                     "h1",
                     false,
                     false,
@@ -98,8 +99,8 @@ function Game(save_data)
             end
         end,
 
-        startNewGame = function(self, player)
-            if player.lives <= 0 then
+        startNewGame = function(self, tron)
+            if tron.lives <= 0 then
                 self:changeGameState("ended")
                 return
             else

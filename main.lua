@@ -1,7 +1,6 @@
 require 'debug'
 local Game = require 'screens/game'
 local Menu = require 'screens/menu'
---local SFX = require 'assets/sfx'
 
 Highscore = {}
 Tron = {}
@@ -45,11 +44,11 @@ function love.load()
     mouse_x, mouse_y = 0, 0
     reset()
     game = Game()
-    menu = Menu(game, tron)
+    menu = Menu(game, Tron)
 
     love.graphics.setBackgroundColor(0, 0, 0)
 
-    tron.image = love.graphics.newImage('assets/images/Tron_50.png')
+    Tron.image = love.graphics.newImage('assets/images/Tron_50.png')
     abraxas.image = love.graphics.newImage('assets/images/Tron2_50.png')
 
     wallImage = love.graphics.newImage('assets/images/wall.png')
@@ -72,28 +71,28 @@ end
 function love.update(dt)
     mouse_x, mouse_y = love.mouse.getPosition()
     if game.state.running then
-        moveCycle(tron, dt)
+        moveCycle(Tron, dt)
         moveCycle(abraxas, dt)
-        if checkCollision(tron) or checkCollision(abraxas) then
-            if tron.lives - 1 <= 0 then
+        if checkCollision(Tron) or checkCollision(abraxas) then
+            if Tron.lives - 1 <= 0 then
                 game:changeGameState("ended")
             end
         end
-        if checkCollision(tron) then
+        if checkCollision(Tron) then
             tronLives = tronLives - 1
             if tronLives > 0 then
-                tron.x = 100
-                tron.y = 100
-                tron.dir = 'right'
-                tron.trail = {}
+                Tron.x = 100
+                Tron.y = 100
+                Tron.dir = 'right'
+                Tron.trail = {}
             else
                 love.event.quit()
             end
         end
     end
-    if not (checkCollision(tron) or checkCollision(abraxas)) then
-        tronSurvivalTime = tronSurvivalTime + dt
-        tronScore = math.floor(tronSurvivalTime)
+    if not (checkCollision(Tron) or checkCollision(abraxas)) then
+        tronSurvivalTime = tronSurvivalTime + dt * 2
+        game.score = math.floor(tronSurvivalTime)
     end
     -- AI logic
     if abraxas.ai then
@@ -118,16 +117,12 @@ function love.draw()
     if game.state.running or game.state.paused then
         drawWalls()
 
-        drawTrail(tron)
+        drawTrail(Tron)
         drawTrail(abraxas)
 
         love.graphics.setColor(1, 1, 1)
-        drawCycle(tron)
+        drawCycle(Tron)
         drawCycle(abraxas)
-
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(love.graphics.newFont(24))
-        love.graphics.print(" Score: " .. tronScore, 600, 10)
 
         local lifeImageWidth = lifeImage:getWidth()
         local lifeImageHeight = lifeImage:getHeight()
@@ -155,17 +150,6 @@ function love.draw()
 
     if not game.state.running then
         love.graphics.circle('fill', mouse_x, mouse_y, 10)
-    end
-end
-
-function love.keypressed(key)
-    if key == 'm' then
-        if SoundVolume == 1 then
-            SoundVolume = 0
-        else
-            SoundVolume = 1
-        end
-        love.audio.setVolume(SoundVolume)
     end
 end
 
@@ -236,7 +220,7 @@ function checkCollision(cycle)
         end
     end
 
-    local otherCycle = (cycle == tron) and abraxas or tron
+    local otherCycle = (cycle == Tron) and abraxas or Tron
     for i = 1, #otherCycle.trail - 1 do
         local p1 = otherCycle.trail[i]
         local p2 = otherCycle.trail[i + 1]
@@ -255,7 +239,7 @@ end
 
 function WriteScore()
     local tmp = {}
-    tmp[1] = tron.score
+    tmp[1] = Tron.score
     for a = 1, #HighScore do
         table.insert(tmp, HighScore[a])
     end

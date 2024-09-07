@@ -1,3 +1,4 @@
+local love = require "love"
 local Button = require "assets/button"
 
 function Menu(game, tron)
@@ -25,9 +26,6 @@ function Menu(game, tron)
             local mouse_x, mouse_y = love.mouse.getPosition()
             for name, button in pairs(buttons) do
                 if button:checkHover(mouse_x, mouse_y, 10) then
-                    -- play click sfx
-                    -- sfx:playFX("select", "single")
-
                     if clicked then
                         button:click()
                     end
@@ -36,11 +34,6 @@ function Menu(game, tron)
 
                     button:setTextColor(0.8, 0.2, 0.2)
                 else
-                    -- -- allows to play sfx again
-                    -- if self.focused == name then
-                    --     sfx:setFXPlayed(false)
-                    -- end
-
                     button:setTextColor(1, 1, 1)
                 end
             end

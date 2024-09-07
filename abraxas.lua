@@ -44,12 +44,12 @@ function isDirectionBlocked(cycle, direction)
         return true
     end
 
-    return calculateTrailCollision(nextX, nextY, tron.trail) or
+    return calculateTrailCollision(nextX, nextY, Tron.trail) or
         calculateTrailCollision(nextX, nextY, abraxas.trail)
 end
 
 function calculateTrailCollision(x, y, trail)
-    for _, point in ipairs(tron.trail) do
+    for _, point in ipairs(Tron.trail) do
         if x == point.x and y == point.y then
             return true
         end
@@ -105,7 +105,7 @@ end
 
 function getDistanceToNearestObstacle(x, y)
     local minDistance = math.huge
-    for _, point in ipairs(tron.trail) do
+    for _, point in ipairs(Tron.trail) do
         local d = math.sqrt((x - point.x) ^ 2 + (y - point.y) ^ 2)
         if d < minDistance then
             minDistance = d
