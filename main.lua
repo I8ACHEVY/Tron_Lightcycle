@@ -22,7 +22,7 @@ local resetComplete = false
 local clickedMouse = false
 
 local function reset()
-    --     tron = tron(3, sfx)
+    --tron = tron(3)
     game = Game()
     menu = Menu()
 
@@ -238,12 +238,12 @@ function checkCollision(cycle)
     return false
 end
 
-function WriteScore()
-    local tmp = {}
-    tmp[1] = Tron.score
-    for a = 1, #HighScore do
-        table.insert(tmp, HighScore[a])
-    end
+function WriteScore(high_score)
+    local tmp = { high_score }
+    tmp[1] = game.high_score
+    -- for a = 1, #HighScore do
+    --     table.insert(tmp, HighScore[a])
+    -- end
     local reset = ''
     for a = 1, #tmp do
         reset = reset .. tmp[a] .. '\n'

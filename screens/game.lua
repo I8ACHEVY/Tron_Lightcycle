@@ -2,6 +2,8 @@ local love = require "love"
 local Text = require "assets/text"
 
 function Game(save_data)
+    local high_score = GetHighScore()
+
     return {
         level = 1,
         state = {
@@ -27,6 +29,11 @@ function Game(save_data)
         end,
 
         gameOver = function(self)
+            if self.score > self.high_score then
+                self.high_score = self.score
+                WriteScore(self.high_score)
+            end
+
             self.screen_text = { Text(
                 "GAME OVER",
                 0,
